@@ -115,7 +115,7 @@ while count < 20:
     reward, state, terminal = gridworld.step((-0.05, 0.02))
 
     # check to see if new state is same as old state (i.e. move into wall)
-    count += (state == locs[-1]).all()
+    count += (state == locs[-1]).any()
     
     locs.append(state)
     
