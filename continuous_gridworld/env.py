@@ -8,7 +8,7 @@ import numpy as np
 
 class Grid(Base):
 
-    def __init__(self, x, y, walls, fc = 'k', lw = 0.01, figsize = None):
+    def __init__(self, x, y, walls, fc = 'k', lw = 0.01):
         super().__init__(locals())
 
     def _gather_walls(self):
@@ -18,8 +18,8 @@ class Grid(Base):
             walls.append(wall)
         return walls
         
-    def _render_skeleton(self):
-        (fig, ax) = (self.fig, self.ax) = plt.subplots(figsize = self.figsize)
+    def _render_skeleton(self, figsize):
+        (fig, ax) = (self.fig, self.ax) = plt.subplots(figsize = figsize)
 
         ax.set_xlim((0, self.x))
         ax.set_ylim((0, self.y))
@@ -35,8 +35,8 @@ class Grid(Base):
             ret.append(obj.patch)
         return ret
 
-    def render(self, *objects):
-        self._render_skeleton()
+    def render(self, *objects, figsize = None):
+        self._render_skeleton(figsize)
         patches = self._gather_patches(objects)
         for patch in patches:
             self.ax.add_patch(patch)
