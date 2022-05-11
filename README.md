@@ -111,7 +111,10 @@ locs  = [gridworld.reset()]
 count = 0
 while count < 20:
     reward, state, terminal = gridworld.step((-0.05, 0))
-    count += (state == locs[-1]).all() # check to see if new state is same as old state (i.e. move into wall)
+
+    # check to see if new state is same as old state (i.e. move into wall)
+    count += (state == locs[-1]).all()
+    
     locs.append(state)
     
 anim = animate(gridworld, locs, 100)
