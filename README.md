@@ -8,6 +8,8 @@ A simple continuous gridworld environment constructor.
 from   continuous_gridworld         import Grid, GridWorld
 from   continuous_gridworld.patches import RectanglePatch
 
+from   matplotlib                   import pyplot as plt, animation
+
 import numpy as np
 
 width = 0.4
