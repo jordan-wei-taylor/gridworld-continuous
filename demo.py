@@ -7,7 +7,7 @@ import numpy as np
 
 plt.switch_backend('agg')
 
-def animate(gridworld, locs, interval = 50):
+def animate(gridworld, locs, interval = 50, wall_count = False):
     """helper function to create demo animations"""
 
     fig, ax, objects, patches = gridworld.render()
@@ -20,8 +20,8 @@ def animate(gridworld, locs, interval = 50):
         nonlocal count
         patches[-1].set_xy(locs[i] + offset)
         fig.canvas.draw()
-        count += (locs[i] == locs[i - 1]).all()
-        if count:
+        count += (locs[i] == locs[i - 1]).any()
+        if wall_count and count:
             ax.set_title(f'hit wall {count} times')
 
     ax.set_xticks([])
@@ -79,13 +79,13 @@ np.random.seed(12)
 locs  = [gridworld.reset()]
 count = 0
 while count < 20:
-    reward, state, terminal = gridworld.step((-0.05, 0))
+    reward, state, terminal = gridworld.step((-0.05, 0.02))
 
     # check to see if new state is same as old state (i.e. move into wall)
-    count += (state == locs[-1]).all()
+    count += (state == locs[-1]).any()
     
     locs.append(state)
     
-anim = animate(gridworld, locs, 100)
+anim = animate(gridworld, locs, interval = 100, wall_count = True)
 
 anim.save('four-rooms-to-wall.gif')
