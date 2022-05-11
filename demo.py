@@ -33,7 +33,7 @@ def animate(gridworld, locs, interval = 50, wall_count = False):
     return anim
 
 reward = 10
-loc    = (7.5, 7.3)
+loc    = (9.5, 9.5)
 kwargs = dict(fc = 'y', ec = 'k')
 
 states = [[reward, loc, kwargs]]

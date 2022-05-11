@@ -12,7 +12,7 @@ from   matplotlib                import pyplot as plt, animation
 import numpy as np
 
 reward = 10
-loc    = (7.5, 7.3)
+loc    = (9.5, 9.5)
 kwargs = dict(fc = 'y', ec = 'k')
 
 states = [[reward, loc, kwargs]]
