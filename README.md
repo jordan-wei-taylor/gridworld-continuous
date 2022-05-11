@@ -1,37 +1,14 @@
+# Continuous GridWorld
+
+A simple continuous gridworld environment constructor.
+
+## Usage
+
+```python
 from   continuous_gridworld         import Grid, GridWorld
 from   continuous_gridworld.patches import RectanglePatch
 
-from   matplotlib                   import pyplot as plt, animation
-
 import numpy as np
-
-plt.switch_backend('agg')
-
-def animate(gridworld, locs, interval = 50):
-    """helper function to create demo animations"""
-
-    fig, ax, objects, patches = gridworld.render()
-
-    # compute offset between bottom left corner and midpoint of rectangular agent patch
-    offset = objects[-1].xy - objects[-1].loc
-
-    count  = 0
-    def func(i):
-        nonlocal count
-        patches[-1].set_xy(locs[i] + offset)
-        fig.canvas.draw()
-        count += (locs[i] == locs[i - 1]).all()
-        if count:
-            ax.set_title(f'hit wall {count} times')
-
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    plt.close()
-
-    anim = animation.FuncAnimation(fig, func, len(locs), interval = interval)
-
-    return anim
 
 width = 0.4
 
@@ -57,9 +34,53 @@ grid            = Grid(10, 10, walls)
 gridworld       = GridWorld(grid, agent_patch, terminal_states)
 
 gridworld.render()
+```
+<p align="center">
+  <img src="four-rooms.png" alt="animated" style="height:480px"/>
+</p>
 
-plt.savefig('four-rooms.png', dpi = 400)
+<br>
+<br>
 
+### Demo Function
+
+<br>
+
+```python
+def animate(gridworld, locs, interval = 50):
+    """helper function to create demo animations"""
+
+    fig, ax, objects, patches = gridworld.render()
+
+    # compute offset between bottom left corner and midpoint of rectangular agent patch
+    offset = objects[-1].xy - objects[-1].loc
+
+    count  = 0
+    def func(i):
+        nonlocal count
+        patches[-1].set_xy(locs[i] + offset)
+        fig.canvas.draw()
+        count += (locs[i] == locs[i - 1]).all()
+        if count:
+            ax.set_title(f'hit wall {count} times')
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    plt.close()
+
+    anim = animation.FuncAnimation(fig, func, len(locs), interval = interval)
+
+    return anim
+```
+
+<br><br>
+
+### Moving towards goal until termination
+
+<br>
+
+```python
 np.random.seed(12)
 
 locs     = [gridworld.reset()]
@@ -71,9 +92,19 @@ while not terminal:
     locs.append(state)
     
 anim = animate(gridworld, locs)
+```
 
-anim.save('four-rooms-get-gold.gif')
+<p align="center">
+  <img src="four-rooms-get-gold.gif" alt="animated" />
+</p>
 
+<br><br>
+
+### Moving towards a wall
+
+<br>
+
+```python
 np.random.seed(12)
 
 locs  = [gridworld.reset()]
@@ -84,5 +115,7 @@ while count < 20:
     locs.append(state)
     
 anim = animate(gridworld, locs, 100)
-
-anim.save('four-rooms-to-wall.gif')
+```
+<p align="center">
+  <img src="four-rooms-to-wall.gif" alt="animated" />
+</p>

@@ -56,6 +56,8 @@ class GridWorld(Base):
                 if np.any(self._check_overlap(agent(state))):
                     raise Exception()
         
+        self.state = agent.loc
+        
     def _check_terminal(self):
         for reward, state in self.terminal_states:
             if any(state.contains(self.agent)):
