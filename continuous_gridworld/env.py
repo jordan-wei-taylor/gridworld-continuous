@@ -18,8 +18,13 @@ class Grid(Base):
             walls.append(wall)
         return walls
         
-    def _render_skeleton(self, figsize):
-        (fig, ax) = (self.fig, self.ax) = plt.subplots(figsize = figsize)
+    def _render_skeleton(self, figsize, ax = None):
+        
+        if ax is None:
+            (fig, ax) = (self.fig, self.ax) = plt.subplots(figsize = figsize)
+        else:
+            self.fig, self.ax = None, ax
+            
 
         ax.set_xlim((0, self.x))
         ax.set_ylim((0, self.y))
@@ -32,11 +37,12 @@ class Grid(Base):
     def _gather_patches(self, objects):
         ret = []
         for obj in objects:
-            ret.append(obj.patch)
+            if obj.loc is not None:
+                ret.append(obj.patch)
         return ret
 
-    def render(self, *objects, figsize = None):
-        self._render_skeleton(figsize)
+    def render(self, *objects, ax = None, figsize = None):
+        self._render_skeleton(figsize, ax)
         patches = self._gather_patches(objects)
         for patch in patches:
             self.ax.add_patch(patch)
@@ -44,10 +50,17 @@ class Grid(Base):
 
 class GridWorld(Base):
 
-    def __init__(self, grid, agent, terminal_states, initial_states = None):
+    def __init__(self, grid, agent, special_states, initial_states = None, cost_func = None, terminal_func = None):
         assert isinstance(grid, Grid)
-        assert isinstance(terminal_states, (list, tuple))
+        assert isinstance(special_states, (list, tuple))
         assert isinstance(initial_states, (list, tuple)) or initial_states is None
+
+        if cost_func is None:
+            cost_func = cost_sqdist
+
+        if terminal_func is None:
+            terminal_func = bool
+
         super().__init__(locals())
         self.walls = grid._gather_walls()
 
@@ -56,14 +69,20 @@ class GridWorld(Base):
                 if np.any(self._check_overlap(agent(state))):
                     raise Exception()
         
-        self.state = agent.loc
-        
-    def _check_terminal(self):
-        for reward, state in self.terminal_states:
+        self._special_states = self.special_states.copy()
+
+        self.state    = agent.loc
+        self.flags    = []
+        self.terminal = False
+
+    def _check_special(self):
+        for i, (reward, state, flag) in enumerate(self._special_states):
             if any(state.contains(self.agent)):
-                self.terminal = True
-                return reward
-        return 0
+                self.flags.append(flag)
+                self.terminal = self.terminal_func(self.flags)
+                del self._special_states[i]
+                return reward, flag
+        return 0, None
 
     def _check_overlap(self, patch):
         ret = []
@@ -73,21 +92,24 @@ class GridWorld(Base):
         return ret
         
     def reset(self):
-        self.terminal = False
+        self._special_states = self.special_states.copy()
+        self.flags           = []
+        self.terminal        = False
         if self.initial_states:
-            self.state = loc = np.random.choice(self.initial_states)
-            return loc
+            self.state = self.agent.loc = self.initial_states[np.random.choice(len(self.initial_states))]
+            return self.state
         else:
-            loc = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
-            while self._check_overlap(self.agent(loc)) or np.any([state.contains(self.agent(loc)) for reward, state in self.terminal_states]):
-                loc = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
-            self.state = loc
-            return loc
+            self.state = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
+            while self._check_overlap(self.agent(self.state)) or np.any([state.contains(self.agent(self.state)) for reward, state, flag in self._special_states]):
+                self.state = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
+            return self.state
 
     def _correct(self, action):
-        new   = self.state + action
-        check = self._check_overlap(self.agent(new))
-        n     = len(check)
+        new        = self.state + action
+        check      = self._check_overlap(self.agent(new))
+        n          = len(check)
+
+        correction = np.zeros_like(action)
 
         if n:
             for modifier in [[1,0],[0,1],[0,0]]:
@@ -98,38 +120,48 @@ class GridWorld(Base):
                 if n == 0:
                     break
 
-        return new
+            correction = (new - self.state - action)
+
+        return new, correction
     
     def step(self, action):
         action = np.array(action)
         assert action.ndim == 1 and len(action) == 2
-        new  = self._correct(action)
-        move = np.square(new - self.state).sum() + (new == self.state).all()
-        reward = self._check_terminal()
-        self.state = new
-        return reward - move, self.state, self.terminal
+        new, correction = self._correct(action)
+        move            = self.cost_func(self.state, action, new)
+        reward, flag    = self._check_special()
+        self.state      = new
+        info            = dict(correction = correction, flag = flag)
+        return reward - move, self.state, self.terminal, info
         
-        
-    def render(self):
-        return self.grid.render(*[terminal[1] for terminal in self.terminal_states], self.agent)
+    def render(self, ax = None):
+        return self.grid.render(*[special[1] for special in self._special_states], self.agent, ax = ax)
 
 class BaseEnv(GridWorld):
 
-    def __init__(self, string, agent_loc, terminal_states = [], initial_states = None, size = 0.5):
+    def __init__(self, string, agent_loc = None, special_states = [], initial_states = None, cost_func = None, terminal_func = None, size = 0.5):
 
         walls, H, V = string2walls(string)
 
-        assert isinstance(agent_loc, (list, tuple)) and len(agent_loc) == 2
+        assert agent_loc is None or (isinstance(agent_loc, (list, tuple)) and len(agent_loc) == 2)
 
-        for reward, state, kwargs in terminal_states:
+        for reward, state, flag, kwargs in special_states:
             assert isinstance(reward, (int, float))
             assert isinstance(state , (list, tuple)) and len(state) == 2
+            assert isinstance(flag  , str)
             assert isinstance(kwargs, dict)
 
-        super().__init__(grid            = Grid(H, V, walls),
-                         agent           = RectanglePatch(agent_loc, size, size, fc = 'g', ec = 'k'),
-                         terminal_states = [(reward, RectanglePatch(loc, size, size, **kwargs)) for reward, loc, kwargs in terminal_states], 
-                         initial_states  = initial_states)
+        special_states = [(reward, RectanglePatch(loc, size, size, **kwargs), flag) for reward, loc, flag, kwargs in special_states]
+
+        super().__init__(grid           = Grid(H, V, walls),
+                         agent          = RectanglePatch(agent_loc, size, size, fc = 'g', ec = 'k'),
+                         special_states = special_states, 
+                         initial_states = initial_states,
+                         cost_func      = cost_func,
+                         terminal_func  = terminal_func)
+
+def cost_sqdist(old, action, new):
+    return np.square(new - old).sum() + (new == old).all()
 
 def string2arrays(string):
 
