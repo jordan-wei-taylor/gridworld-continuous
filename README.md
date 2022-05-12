@@ -94,7 +94,7 @@ anim.save('four-rooms-get-gold.gif')
 
 Upon reaching the gold state, the final `info` value is:
 
-```{'correction': array([0., 0.]), 'flag': 'gold'}```
+```{'correction': None, 'flag': 'gold'}```
 
 The `info` dictionary will always contain two entries:
 

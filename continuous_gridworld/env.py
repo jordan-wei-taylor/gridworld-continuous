@@ -109,7 +109,7 @@ class GridWorld(Base):
         check      = self._check_overlap(self.agent(new))
         n          = len(check)
 
-        correction = np.zeros_like(action)
+        correction = None
 
         if n:
             for modifier in [[1,0],[0,1],[0,0]]:
