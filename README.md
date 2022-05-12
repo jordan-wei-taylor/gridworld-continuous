@@ -202,7 +202,9 @@ custom = """
 #############
 """
 
-BaseEnv(custom).render()
+env = BaseEnv(custom)
+
+env.render()
 
 plt.savefig('custom.png', dpi = 400)
 ```
