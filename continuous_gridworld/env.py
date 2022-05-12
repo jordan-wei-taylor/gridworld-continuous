@@ -145,7 +145,7 @@ class GridWorld(Base):
         self.info   = info
 
     def render(self, ax = None):
-        return self.grid.render(*self._events, self.agent, ax = ax)
+        return self.grid.render(*self.events, self.agent, ax = ax)
 
 class BaseEnv(GridWorld):
 
