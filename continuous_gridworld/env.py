@@ -93,9 +93,10 @@ class GridWorld(Base):
         return ret
         
     def reset(self):
-        self.events = self._events.copy()
-        self.flags           = []
-        self.terminal        = False
+        self.flags.clear()
+        self.info.clear()
+        self.events   = self._events.copy()
+        self.terminal = False
         if self.initial_states:
             self.state = self.agent.loc = self.initial_states[np.random.choice(len(self.initial_states))]
             return self.state

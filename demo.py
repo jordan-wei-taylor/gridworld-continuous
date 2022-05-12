@@ -28,7 +28,7 @@ def animate(configs, interval = 50):
         fig.canvas.draw()
 
         if i:
-            ax.set_xlabel(info)
+            ax.set_xlabel(configs[i][2])
             count += configs[i][2]['correction'] is not None
         
         if count:
