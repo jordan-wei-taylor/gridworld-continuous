@@ -1,6 +1,6 @@
 from   continuous_gridworld.base    import Base
 from   continuous_gridworld.patches import RectanglePatch
-
+from   continuous_gridworld.events  import Event
 from   matplotlib                   import pyplot as plt
 
 import numpy as np
@@ -50,9 +50,9 @@ class Grid(Base):
 
 class GridWorld(Base):
 
-    def __init__(self, grid, agent, special_states, initial_states = None, cost_func = None, terminal_func = None):
+    def __init__(self, grid, agent, events, initial_states = None, cost_func = None, terminal_func = None):
         assert isinstance(grid, Grid)
-        assert isinstance(special_states, (list, tuple))
+        assert isinstance(events, (list, tuple))
         assert isinstance(initial_states, (list, tuple)) or initial_states is None
 
         if cost_func is None:
@@ -69,19 +69,20 @@ class GridWorld(Base):
                 if np.any(self._check_overlap(agent(state))):
                     raise Exception()
         
-        self._special_states = self.special_states.copy()
+        self._events = self.events.copy()
 
         self.state    = agent.loc
         self.flags    = []
         self.terminal = False
+        self.info     = {}
 
-    def _check_special(self):
-        for i, (reward, state, flag) in enumerate(self._special_states):
-            if any(state.contains(self.agent)):
-                self.flags.append(flag)
+    def _check_event(self):
+        for i, event in enumerate(self.events):
+            if any(event.contains(self.agent)):
+                self.flags.append(event.name)
                 self.terminal = self.terminal_func(self.flags)
-                del self._special_states[i]
-                return reward, flag
+                del self.events[i]
+                return event.reward, event.name
         return 0, None
 
     def _check_overlap(self, patch):
@@ -92,7 +93,7 @@ class GridWorld(Base):
         return ret
         
     def reset(self):
-        self._special_states = self.special_states.copy()
+        self.events = self._events.copy()
         self.flags           = []
         self.terminal        = False
         if self.initial_states:
@@ -100,7 +101,7 @@ class GridWorld(Base):
             return self.state
         else:
             self.state = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
-            while self._check_overlap(self.agent(self.state)) or np.any([state.contains(self.agent(self.state)) for reward, state, flag in self._special_states]):
+            while self._check_overlap(self.agent(self.state)) or np.any([event.contains(self.agent(self.state)) for event in self.events]):
                 self.state = np.random.uniform((0, 0), (self.grid.x, self.grid.y))
             return self.state
 
@@ -129,33 +130,36 @@ class GridWorld(Base):
         assert action.ndim == 1 and len(action) == 2
         new, correction = self._correct(action)
         move            = self.cost_func(self.state, action, new)
-        reward, flag    = self._check_special()
+        reward, flag    = self._check_event()
         self.state      = new
-        info            = dict(correction = correction, flag = flag)
-        return reward - move, self.state, self.terminal, info
+        self.info       = dict(correction = correction, flag = flag)
+        return reward - move, self.state, self.terminal, self.info
         
+    def get_config(self):
+        return self.state, self.events.copy(), self.info
+
+    def set_config(self, state, events, info):
+        self.state  = self.agent.loc = state
+        self.events = events
+        self.info   = info
+
     def render(self, ax = None):
-        return self.grid.render(*[special[1] for special in self._special_states], self.agent, ax = ax)
+        return self.grid.render(*self._events, self.agent, ax = ax)
 
 class BaseEnv(GridWorld):
 
-    def __init__(self, string, agent_loc = None, special_states = [], initial_states = None, cost_func = None, terminal_func = None, size = 0.5):
+    def __init__(self, string, agent_loc = None, events = [], initial_states = None, cost_func = None, terminal_func = None, size = 0.5):
 
         walls, H, V = string2walls(string)
 
         assert agent_loc is None or (isinstance(agent_loc, (list, tuple)) and len(agent_loc) == 2)
 
-        for reward, state, flag, kwargs in special_states:
-            assert isinstance(reward, (int, float))
-            assert isinstance(state , (list, tuple)) and len(state) == 2
-            assert isinstance(flag  , str)
-            assert isinstance(kwargs, dict)
-
-        special_states = [(reward, RectanglePatch(loc, size, size, **kwargs), flag) for reward, loc, flag, kwargs in special_states]
+        for event in events:
+            assert isinstance(event, Event)
 
         super().__init__(grid           = Grid(H, V, walls),
                          agent          = RectanglePatch(agent_loc, size, size, fc = 'g', ec = 'k'),
-                         special_states = special_states, 
+                         events         = events, 
                          initial_states = initial_states,
                          cost_func      = cost_func,
                          terminal_func  = terminal_func)

@@ -1,7 +1,8 @@
-from   continuous_gridworld.envs import FourRooms
-from   continuous_gridworld.env import BaseEnv
+from   continuous_gridworld.envs   import FourRooms
+from   continuous_gridworld.env    import BaseEnv
+from   continuous_gridworld.events import SquareGold
 
-from   matplotlib                import pyplot as plt, animation
+from   matplotlib                  import pyplot as plt, animation
 
 import numpy as np
 import os
@@ -11,44 +12,42 @@ os.chdir('demo')
 
 plt.switch_backend('agg')
 
-def animate(gridworld, locs, infos = None, interval = 50, wall_count = False):
+def animate(configs, interval = 50):
     """helper function to create demo animations"""
     
-    gridworld._special_states = gridworld.special_states.copy()
+    fig, ax = plt.subplots()
 
-    fig, ax, objects, patches = gridworld.render()
-
-    # compute offset between bottom left corner and midpoint of rectangular agent patch
-    offset = objects[-1].xy - objects[-1].loc
+    _, ax, objects, patches = env.render(ax = ax)
 
     count  = 0
     def func(i):
         nonlocal count
-        patches[-1].set_xy(locs[i] + offset)
+        env.set_config(*configs[i])
+        ax.clear()
+        env.render(ax = ax)
         fig.canvas.draw()
-        count += (locs[i] == locs[i - 1]).any()
-        if wall_count and count:
+
+        if i:
+            ax.set_xlabel(info)
+            count += configs[i][2]['correction'] is not None
+        
+        if count:
             ax.set_title(f'hit wall {count} times')
-        if infos:
-            ax.set_xlabel(infos[i])
 
     ax.set_xticks([])
     ax.set_yticks([])
 
     plt.close()
 
-    anim = animation.FuncAnimation(fig, func, len(locs), interval = interval)
+    anim = animation.FuncAnimation(fig, func, len(configs), interval = interval)
 
     return anim
 
-reward = 10
-loc    = (9.5, 9.5)
-flag   = 'gold'
-kwargs = dict(fc = 'y', ec = 'k')
+gold   = SquareGold(loc = (9.5, 9.5))
 
-states = [[reward, loc, flag, kwargs]]
+events = [gold]
 
-env    = FourRooms(special_states = states)
+env    = FourRooms(events = events)
 
 env.render()
 
@@ -56,48 +55,42 @@ plt.savefig('four-rooms.png', dpi = 400)
 
 np.random.seed(12)
 
-locs     = [env.reset()]
+state    = env.reset()
 terminal = env.terminal
+configs  = [env.get_config()]
 
 while not terminal:
-    action = np.clip(env.special_states[0][1].loc - locs[-1], -0.05, 0.05)
+    action = np.clip(gold.loc - state, -0.05, 0.05)
     reward, state, terminal, info = env.step(action)
-    locs.append(state)
+    configs.append(env.get_config())
     
-anim = animate(env, locs)
+anim = animate(configs)
 
 anim.save('four-rooms-get-gold.gif')
 
 np.random.seed(12)
 
-locs  = [env.reset()]
-infos = [{}]
+state   = env.reset()
+configs = [env.get_config()]
+
 count = 0
 while count < 20:
     reward, state, terminal, info = env.step((-0.05, 0.02))
-
-    # check to see if new state is same as old state (i.e. move into wall)
-    count += (state == locs[-1]).any()
+    configs.append(env.get_config())
+    count += info['correction'] is not None
     
-    locs.append(state)
-    infos.append(info)
-    
-anim = animate(env, locs, infos, interval = 100, wall_count = True)
+anim = animate(configs, interval = 100)
 
 anim.save('four-rooms-to-wall.gif')
 
 def terminal_func(flags):
     return flags.count('gold') == 2
 
-reward  = 10
-locs    = [(2, 2), (9.5, 9.5)]
-kwargs  = dict(fc = 'y', ec = 'k')
-flag    = 'gold'
-
-states  = [[reward, loc, flag, kwargs] for loc in locs]
-
+locs    = [(9.5, 9.5), (2, 2)]
+events  = [SquareGold(loc = loc) for loc in locs]
 initial = (8.9, 8.9)
-env     = FourRooms(special_states = states, initial_states = [initial], terminal_func = terminal_func)
+
+env     = FourRooms(events = events, initial_states = [initial], terminal_func = terminal_func)
 
 env.reset()
 
@@ -136,7 +129,7 @@ custom = """
 #############
 """
 
-
 BaseEnv(custom).render()
 
 plt.savefig('custom.png', dpi = 400)
+

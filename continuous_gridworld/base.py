@@ -1,11 +1,18 @@
+base_exceptions = ['self', '__class__']
+
 class Base():
 
-    def __init__(self, params, exceptions = ['self', '__class__']):
+    def __init__(self, params, exceptions = []):
+        self.__store__(params, exceptions)
+
+    def __store__(self, params, exceptions = []):
+        exceptions   += base_exceptions
         self.__params = []
         for key, value in params.items():
-            if key not in exceptions:
+            if key not in exceptions and key:
                 setattr(self, key, value)
                 self.__params.append(key)
+
         self.__name__ = self.__class__.__name__
 
     def __repr__(self):
