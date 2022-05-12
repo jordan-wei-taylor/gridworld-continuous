@@ -12,7 +12,7 @@ os.chdir('demo')
 
 plt.switch_backend('agg')
 
-def animate(configs, interval = 50):
+def animate(configs, interval = 50, wall_count = False):
     """helper function to create demo animations"""
     
     fig, ax = plt.subplots()
@@ -31,7 +31,7 @@ def animate(configs, interval = 50):
             ax.set_xlabel(configs[i][2])
             count += configs[i][2]['correction'] is not None
         
-        if count:
+        if wall_count and count:
             ax.set_title(f'hit wall {count} times')
 
     ax.set_xticks([])

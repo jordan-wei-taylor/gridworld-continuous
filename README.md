@@ -86,7 +86,7 @@ anim.save('four-rooms-get-gold.gif')
 ```
 
 <p align="center">
-  <img src="four-rooms-get-gold.gif" alt="animated" />
+  <img src="demo/four-rooms-get-gold.gif" alt="animated" />
 </p>
 
 <br>
