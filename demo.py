@@ -1,8 +1,13 @@
 from   continuous_gridworld.envs import FourRooms
+from   continuous_gridworld.env import BaseEnv
 
 from   matplotlib                import pyplot as plt, animation
 
 import numpy as np
+import os
+
+os.makedirs('demo', exist_ok = True)
+os.chdir('demo')
 
 plt.switch_backend('agg')
 
@@ -120,8 +125,6 @@ ax[0].set_title(f'state = {initial}\naction = {action}')
 ax[1].set_title(f'state = {tuple(env.state)}\n')
 
 plt.savefig('four-rooms-first-gold.png', bbox_inches = 'tight', bbox_extra_artists = [sup])
-
-from continuous_gridworld.env import BaseEnv
 
 custom = """
 #############

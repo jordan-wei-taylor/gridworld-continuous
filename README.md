@@ -25,7 +25,7 @@ env.render()
 plt.savefig('four-rooms.png', dpi = 400)
 ```
 <p align="center">
-  <img src="four-rooms.png" alt="animated" style="height:480px"/>
+  <img src="demo/four-rooms.png" alt="animated" style="height:480px"/>
 </p>
 
 <br>
@@ -87,7 +87,7 @@ anim.save('four-rooms-get-gold.gif')
 ```
 
 <p align="center">
-  <img src="four-rooms-get-gold.gif" alt="animated" />
+  <img src="demo/four-rooms-get-gold.gif" alt="animated" />
 </p>
 
 <br>
@@ -128,7 +128,7 @@ anim = animate(env, locs, infos, interval = 100, wall_count = True)
 anim.save('four-rooms-to-wall.gif')
 ```
 <p align="center">
-  <img src="four-rooms-to-wall.gif" alt="animated" />
+  <img src="demo/four-rooms-to-wall.gif" alt="animated" />
 </p>
 
 <br><br>
@@ -184,7 +184,7 @@ plt.savefig('four-rooms-first-gold.png', bbox_inches = 'tight', bbox_extra_artis
 ```
 
 <p align="center">
-  <img src="four-rooms-first-gold.png" alt="animated" style="height:480px"/>
+  <img src="demo/four-rooms-first-gold.png" alt="animated" style="height:480px"/>
 </p>
 
 <br><br>
@@ -216,5 +216,5 @@ plt.savefig('custom.png', dpi = 400)
 ```
 
 <p align="center">
-  <img src="custom.png" alt="animated" style="height:480px"/>
+  <img src="demo/custom.png" alt="animated" style="height:480px"/>
 </p>
