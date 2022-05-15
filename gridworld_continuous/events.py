@@ -1,4 +1,4 @@
-from continuous_gridworld.patches import RectanglePatch, CirclePatch
+from gridworld_continuous.patches import RectanglePatch, CirclePatch
 
 
 def gold_defaults(kwargs):

@@ -1,4 +1,4 @@
-from continuous_gridworld.base import ObjectPatch
+from gridworld_continuous.base import ObjectPatch
 from matplotlib                import patches
 
 class RectanglePatch(ObjectPatch):

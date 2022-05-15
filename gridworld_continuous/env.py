@@ -1,6 +1,6 @@
-from   continuous_gridworld.base    import Base
-from   continuous_gridworld.patches import RectanglePatch
-from   continuous_gridworld.events  import Event
+from   gridworld_continuous.base    import Base
+from   gridworld_continuous.patches import RectanglePatch
+from   gridworld_continuous.events  import Event
 from   matplotlib                   import pyplot as plt
 
 import numpy as np
