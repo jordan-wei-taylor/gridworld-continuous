@@ -2,6 +2,16 @@
 
 A simple continuous gridworld environment constructor.
 
+<br>
+
+## Installation
+
+```console
+user@device:~$ pip install gridworld_continuous
+```
+
+<br>
+
 ## Usage
 
 ```python
