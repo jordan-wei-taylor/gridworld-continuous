@@ -1,6 +1,6 @@
-from   continuous_gridworld.envs   import FourRooms
-from   continuous_gridworld.env    import BaseEnv
-from   continuous_gridworld.events import SquareGold
+from   gridworld_continuous.envs   import FourRooms
+from   gridworld_continuous.env    import BaseEnv
+from   gridworld_continuous.events import SquareGold
 
 from   matplotlib                  import pyplot as plt, animation
 
